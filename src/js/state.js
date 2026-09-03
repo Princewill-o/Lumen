@@ -1,6 +1,6 @@
 /**
  * Central State Store for Lumen Platform
- * Manages local reactive state, local storage persistence, and view routing.
+ * Clean zero-data initial state that builds dynamically as real users register & learn.
  */
 
 const STORAGE_KEY = 'lumen_app_state_v1';
@@ -8,58 +8,26 @@ const STORAGE_KEY = 'lumen_app_state_v1';
 const defaultState = {
   theme: 'light',
   user: {
-    isLoggedIn: true,
-    name: 'Sarah Jenkins',
-    email: 'sarah.jenkins@example.com',
+    isLoggedIn: false,
+    name: '',
+    email: '',
     plan: 'Pro Trial',
-    trialDaysLeft: 12,
+    trialDaysLeft: 14,
     pin: '1234'
   },
-  children: [
-    {
-      id: 'child_1',
-      name: 'Leo',
-      age: 5,
-      grade: 'Pre-K',
-      avatar: '🦁',
-      color: '#F97316',
-      readingLevel: 2,
-      mathLevel: 2,
-      readingProgress: 68, // percentage
-      mathProgress: 75,
-      streakDays: 5,
-      totalMinutes: 140,
-      totalStars: 42,
-      favoriteSubject: 'Early Arithmetic'
-    },
-    {
-      id: 'child_2',
-      name: 'Maya',
-      age: 7,
-      grade: '1st Grade',
-      avatar: '🦊',
-      color: '#0D9488',
-      readingLevel: 3,
-      mathLevel: 4,
-      readingProgress: 88,
-      mathProgress: 92,
-      streakDays: 8,
-      totalMinutes: 210,
-      totalStars: 89,
-      favoriteSubject: 'Story Comprehension'
-    }
-  ],
-  activeChildId: 'child_1',
+  children: [], // Clean empty children array
+  activeChildId: null,
   currentView: 'marketing', // 'marketing' | 'parent-dashboard' | 'child-mode'
   dashboardTab: 'overview', // 'overview' | 'profiles' | 'progress' | 'settings'
   authModalOpen: false,
   authModalType: 'signup', // 'signup' | 'login'
-  
+  activities: [], // Real activity log entries
+
   // Child Mode Active Session State
   childSession: {
     activeSubject: 'reading', // 'reading' | 'math'
     questionIndex: 0,
-    difficulty: 2, // 1 to 5
+    difficulty: 1, // Start at Level 1 baseline
     consecutiveCorrect: 0,
     sessionStars: 0,
     isComplete: false,
@@ -139,21 +107,24 @@ class StateStore {
   }
 
   getActiveChild() {
-    return this.state.children.find(c => c.id === this.state.activeChildId) || this.state.children[0];
+    if (!this.state.activeChildId && this.state.children.length > 0) {
+      return this.state.children[0];
+    }
+    return this.state.children.find(c => c.id === this.state.activeChildId) || null;
   }
 
   addChild(profileData) {
     const newChild = {
       id: 'child_' + Date.now(),
-      name: profileData.name || 'New Kid',
+      name: profileData.name || 'Child',
       age: profileData.age || 5,
-      grade: profileData.grade || 'K',
-      avatar: profileData.avatar || '🐰',
+      grade: profileData.grade || (profileData.age <= 5 ? 'Pre-K' : 'Kindergarten'),
+      avatar: profileData.avatar || '🦁',
       color: profileData.color || '#0D9488',
       readingLevel: 1,
       mathLevel: 1,
-      readingProgress: 10,
-      mathProgress: 10,
+      readingProgress: 0, // Clean 0% baseline
+      mathProgress: 0,
       streakDays: 1,
       totalMinutes: 0,
       totalStars: 0,
@@ -168,7 +139,7 @@ class StateStore {
 
   startChildSession(subject = 'reading') {
     const child = this.getActiveChild();
-    const initialDifficulty = subject === 'reading' ? child.readingLevel : child.mathLevel;
+    const initialDifficulty = child ? (subject === 'reading' ? child.readingLevel : child.mathLevel) : 1;
 
     this.setState({
       currentView: 'child-mode',
@@ -201,15 +172,26 @@ class StateStore {
     const nextIndex = session.questionIndex + 1;
     const isComplete = nextIndex >= 5; // 5 questions per session loop
 
-    if (isComplete) {
+    if (isComplete && child) {
+      const earnedStars = newStars + 2; // bonus completion stars
+      const newActivity = {
+        id: 'act_' + Date.now(),
+        childName: child.name,
+        subject: session.activeSubject === 'reading' ? 'Reading Story' : 'Math Explorer',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        stars: earnedStars
+      };
+
       // Update child overall stats
       const updatedChildren = this.state.children.map(c => {
         if (c.id === child.id) {
-          const addedProgress = Math.min(100, (session.activeSubject === 'reading' ? c.readingProgress : c.mathProgress) + 8);
+          const addedProgress = Math.min(100, (session.activeSubject === 'reading' ? c.readingProgress : c.mathProgress) + 20);
           return {
             ...c,
-            totalStars: c.totalStars + newStars + 2, // bonus completion stars
+            totalStars: c.totalStars + earnedStars,
             totalMinutes: c.totalMinutes + 5,
+            readingLevel: session.activeSubject === 'reading' ? newDiff : c.readingLevel,
+            mathLevel: session.activeSubject === 'math' ? newDiff : c.mathLevel,
             readingProgress: session.activeSubject === 'reading' ? addedProgress : c.readingProgress,
             mathProgress: session.activeSubject === 'math' ? addedProgress : c.mathProgress
           };
@@ -217,16 +199,17 @@ class StateStore {
         return c;
       });
 
-      this.setState({
+      this.setState(prev => ({
         children: updatedChildren,
+        activities: [newActivity, ...prev.activities].slice(0, 10),
         childSession: {
           ...session,
           consecutiveCorrect: newConsecutive,
-          sessionStars: newStars + 2,
+          sessionStars: earnedStars,
           difficulty: newDiff,
           isComplete: true
         }
-      });
+      }));
     } else {
       this.setState({
         childSession: {
@@ -238,6 +221,12 @@ class StateStore {
         }
       });
     }
+  }
+
+  resetAllData() {
+    localStorage.removeItem(STORAGE_KEY);
+    this.state = { ...defaultState };
+    this.notify();
   }
 }
 

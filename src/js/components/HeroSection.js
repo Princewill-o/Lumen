@@ -28,14 +28,12 @@ export function renderHeroSection() {
           </div>
 
           <div class="hero-proof">
-            <div class="avatars-group">
-              <div class="avatar-stack" style="background-image: url('https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=120&q=80');"></div>
-              <div class="avatar-stack" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80');"></div>
-              <div class="avatar-stack" style="background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80');"></div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem;">
+              <span>🛡️</span> <span>⭐</span> <span>💡</span>
             </div>
             <div>
-              <div style="font-weight: 700; font-size: 0.95rem;">Rated 4.9/5 by 12,000+ Parents</div>
-              <div style="font-size: 0.85rem; color: var(--color-text-secondary);">Avg. 1.8 years reading growth in 3 months</div>
+              <div style="font-weight: 700; font-size: 0.95rem;">Designed for Children Ages 3–8</div>
+              <div style="font-size: 0.85rem; color: var(--color-text-secondary);">Phonics Fluency & Early Arithmetic Mastery</div>
             </div>
           </div>
         </div>
@@ -46,11 +44,11 @@ export function renderHeroSection() {
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span style="font-size: 1.4rem;">🦁</span>
               <div>
-                <strong style="font-size: 0.95rem;">Leo's Math Adventure</strong>
-                <div style="font-size: 0.8rem; color: var(--color-text-secondary);">Level 2 • Adaptive Scaling</div>
+                <strong style="font-size: 0.95rem;">Interactive Demo Session</strong>
+                <div style="font-size: 0.8rem; color: var(--color-text-secondary);">Level 1 • Adaptive Scaling</div>
               </div>
             </div>
-            <div class="badge badge-accent">⭐ 14 Stars Earned</div>
+            <div class="badge badge-accent">⭐ Demo Mode</div>
           </div>
 
           <!-- Spark AI Tutor Bubble -->
@@ -72,7 +70,7 @@ export function renderHeroSection() {
           </div>
 
           <div style="margin-top: 1rem; font-size: 0.8rem; text-align: center; color: var(--color-text-secondary);">
-            💡 Try clicking an answer to see Spark's real-time AI response!
+            💡 Click an answer to test Spark's real-time AI response!
           </div>
         </div>
       </div>
@@ -83,7 +81,7 @@ export function renderHeroSection() {
 export function attachHeroEvents() {
   const trialBtn = document.getElementById('hero-start-trial-btn');
   if (trialBtn) {
-    trialBtn.onclick = () => store.setView('parent-dashboard');
+    trialBtn.onclick = () => store.setState({ authModalOpen: true, authModalType: 'signup' });
   }
 
   const demoKidBtn = document.getElementById('hero-demo-kid-btn');
@@ -91,7 +89,6 @@ export function attachHeroEvents() {
     demoKidBtn.onclick = () => store.startChildSession('math');
   }
 
-  // Interactive Demo buttons inside hero card
   const optBtns = document.querySelectorAll('.hero-opt-btn');
   const speechBubble = document.getElementById('hero-spark-speech');
 
