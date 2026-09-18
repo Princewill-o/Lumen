@@ -18,3 +18,6 @@ Palette: Midnight #080F1B, Electric blue #75B9FF (light-mode blue #166BD3), Ambe
 Portfolio entries are in src/data/portfolio.js. Supply approved client names, logos and evidence URLs, and real project images, summaries, status and proof URLs. Entries missing evidence are not rendered. The initial visible entry is the site's actual guided enquiry prototype, explicitly identified as an internal prototype. No external customers or deployments have been invented.
 
 Brand imagery was created with built-in ImageGen. Connected glass nodes are conceptual artwork, not project evidence. Transparent logos are derived from the supplied assets. Image generation prompts are in BRAND-ASSETS.md.
+
+## Product concepts
+The product explorations section includes three AI-generated mockups (Enquiries, Bookings and Documents) and click-to-play, three-step workflow animations. The images are concept visuals, not evidence of completed client work. Play/pause/replay controls run local state only; no backend actions occur. Reduced-motion settings suppress image movement while the workflow steps remain available. There are no video files or claims of recorded software demos.
