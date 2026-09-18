@@ -21,3 +21,6 @@ Brand imagery was created with built-in ImageGen. Connected glass nodes are conc
 
 ## Product concepts
 The product explorations section includes three AI-generated mockups (Enquiries, Bookings and Documents) and click-to-play, three-step workflow animations. The images are concept visuals, not evidence of completed client work. Play/pause/replay controls run local state only; no backend actions occur. Reduced-motion settings suppress image movement while the workflow steps remain available. There are no video files or claims of recorded software demos.
+
+## Enquiries and booking
+The enquiry form posts JSON to `VITE_ENQUIRY_ENDPOINT` when configured. Without that variable it uses the FormSubmit AJAX endpoint for `okubep@gmail.com`; FormSubmit may require a one-time activation email on first use. For production ownership and privacy controls, replace it with a server endpoint that validates, stores, rate-limits and emails the enquiry. The booking card links to the supplied Calendly URL: `https://calendly.com/lumen_ai/lumen-project-booking`.

@@ -49,9 +49,10 @@ export default function PointerEffects() {
 }
 
 export function ScrollEffects() {
-  useEffect(() => {
+ useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)')
     let observer
+    const onScroll = () => document.documentElement.classList.toggle('is-scrolled', window.scrollY > 36)
     const nodes = [...document.querySelectorAll('.section-heading, .section > h2, .solution-card, .process-grid article, .comparison article, .demo-window, .work-card, .belief, .faq-section, .contact-section')]
     function setup() {
       observer?.disconnect()
@@ -64,8 +65,8 @@ export function ScrollEffects() {
         if (node.getBoundingClientRect().top > innerHeight) { node.classList.add('reveal-pending'); observer.observe(node) }
       })
     }
-    setup(); media.addEventListener('change', setup)
-    return () => { observer?.disconnect(); nodes.forEach(node=>node.classList.remove('reveal-pending')); media.removeEventListener('change', setup) }
+    setup(); onScroll(); window.addEventListener('scroll', onScroll, { passive: true }); media.addEventListener('change', setup)
+    return () => { observer?.disconnect(); nodes.forEach(node=>node.classList.remove('reveal-pending')); window.removeEventListener('scroll', onScroll); media.removeEventListener('change', setup) }
   }, [])
   return null
 }
