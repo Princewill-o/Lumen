@@ -1,28 +1,47 @@
-# Lumen — AI-Powered Adaptive Tutor for Early Reading & Math
+# Lumen — The Future Runs on Lumen
 
-Lumen is an adaptive AI reading and math tutoring platform for children aged 3–8, designed alongside a parent management dashboard and marketing website.
+Lumen designs practical AI systems around the way a business already works. The site is an enquiry-led studio experience for businesses looking to automate customer conversations, bookings, follow-ups, content, documents, and repetitive administration.
 
-## ✨ Key Features
+## What the site includes
 
-- **Marketing Website**: Hero section with interactive live AI Spark demo, 3-step approach, pricing calculator, and auth modal.
-- **Parent Platform**: Child profile switcher (up to 3 kids), active streak counter (🔥 5 Days Active), Reading & Math progress rings, skill mastery breakdown, and security settings.
-- **Child Learning Mode**: Full-screen distraction-free mode with animated AI tutor Spark, Web Speech API text-to-speech, synthetic audio celebration feedback, real-time difficulty scaling (levels 1-5), and a parent PIN safety gate.
-- **Dark & Light Mode**: Seamless theme switching with system preference detection.
+- Light and dark themes using the Lumen bulb mark with transparent PNG assets.
+- Floating navigation with scroll compression, pointer effects, hover states, and reduced-motion support.
+- Clickable automation solution cards and a simple three-step delivery process.
+- Industry examples, workflow comparisons, FAQs, and an interactive enquiry qualification demo.
+- AI-generated product concept visuals for enquiries, bookings, and document workflows, each with play/pause/replay animation.
+- Calendly booking CTA: `https://calendly.com/lumen_ai/lumen-project-booking`.
+- Enquiry form delivery to `okubep@gmail.com` through a configurable endpoint, with a FormSubmit fallback for the initial setup.
 
-## 🚀 Getting Started
+The product visuals are explicitly labelled as concept visuals. The site does not invent client names, testimonials, results, partnerships, or project evidence.
 
-Simply open `index.html` in any modern web browser or serve via HTTP server:
+## Run locally
 
 ```bash
-# Open in browser directly or serve locally
-python -m http.server 8000
-# or
-npx serve .
+npm install
+npm run dev
 ```
 
-## 🛠️ Design System
+Create a production build with:
 
-- Primary Teal: `#0D9488`
-- Accent Coral: `#F97316`
-- Dark Mode Surface: `#1C1917`
-- Typography: Plus Jakarta Sans, Inter, Fredoka
+```bash
+npm run build
+```
+
+## Enquiry delivery
+
+Copy `.env.example` to `.env.local` and set `VITE_ENQUIRY_ENDPOINT` to a server endpoint that accepts enquiry JSON via `POST`. The endpoint should validate and rate-limit submissions, save them durably, and send the notification email server-side. If the variable is empty, the site uses the FormSubmit AJAX endpoint for `okubep@gmail.com`; FormSubmit may ask for one-time activation on first use.
+
+Payload fields include `type`, `name`, `business`, `email`, `website`, `industry`, `size`, `requirements`, `improvements`, and `notes`.
+
+## Adding approved work
+
+Add verified companies and projects in `src/data/portfolio.js`. Entries render only when they include the required evidence URL. Keep client claims, logos, screenshots, and outcomes grounded in approved source material.
+
+## Visual system
+
+- Midnight: `#080F1B`
+- Electric blue: `#75B9FF`
+- Amber: `#FFBF69`
+- Cloud: `#F4F8FF`
+
+Brand asset notes and generation prompts are in `BRAND-ASSETS.md`. Integration details are in `INTEGRATION.md`.
