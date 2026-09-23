@@ -25,7 +25,76 @@ function Demo() {
  function reply(e) { e.preventDefault(); if (!value.trim()) return; setAnswers([...answers, value.trim()]); setValue(''); setStep(step + 1) }
  return <div className="demo-window"><div className="demo-bar"><span><i /> Lumen assistant</span><span>ILLUSTRATIVE DEMO</span></div><div className="conversation"><p className="bubble customer">Hi, I’m looking for a quote for a bathroom renovation. Do you cover North London?</p>{prompts.slice(0, Math.min(step + 1, 3)).map((p, i) => <div key={p}><p className="speaker">✦ LUMEN AI</p><p className="bubble">{p}</p>{answers[i] && <p className="bubble customer">{answers[i]}</p>}</div>)}{step === 3 && <div className="qualified"><Check size={19} /> Enquiry qualified <p>Your details are ready for the team. In a connected system, Lumen can update your records and trigger a follow-up.</p><button onClick={() => {setStep(0); setAnswers([])}}>Try again ↗</button></div>}</div>{step < 3 && <form className="chat-input" onSubmit={reply}><input aria-label={['Property postcode', 'Type of renovation', 'Preferred timeframe'][step]} placeholder={['Enter a postcode…', 'Tell us about the renovation…', 'When would you like to start?'][step]} value={value} onChange={e => setValue(e.target.value)} required maxLength={300} /><button aria-label="Send reply"><ArrowRight size={20} /></button></form>}<p className="demo-note">A guided example, not a live AI agent. Nothing here is submitted.</p></div>
 }
-function EnquiryForm({ demo = false }) {
+const pricingTiers = [
+  {
+    id: 'starter',
+    tier: 'Low Tier',
+    badge: 'Fast Launch',
+    name: 'Starter Web Presence',
+    tag: 'ESSENTIAL FOUNDATION',
+    desc: 'Clean, responsive modern website designed to establish credibility and capture inbound customer enquiries.',
+    priceOneOff: '£495',
+    pricePlan: '£175',
+    planPeriod: '/mo for 3 months',
+    oneOffPeriod: 'one-time investment',
+    popular: false,
+    packageName: 'Starter Web Presence (£495 / £175 mo)',
+    features: [
+      'High-converting 1-page responsive layout',
+      'Mobile, tablet & speed-optimized performance',
+      'Direct customer enquiry & contact form',
+      'Google Analytics & fundamental SEO setup',
+      'Fast 7-day rapid delivery',
+      '14 days post-launch adjustments & support'
+    ]
+  },
+  {
+    id: 'growth',
+    tier: 'Medium Tier',
+    badge: 'Most Popular',
+    name: 'Growth Business Hub',
+    tag: 'FULL WEBSITE + BOOKINGS',
+    desc: 'Complete multi-page business website equipped with automated appointment booking and CRM lead notifications.',
+    priceOneOff: '£1,250',
+    pricePlan: '£440',
+    planPeriod: '/mo for 3 months',
+    oneOffPeriod: 'one-time investment',
+    popular: true,
+    packageName: 'Growth Business Hub (£1,250 / £440 mo)',
+    features: [
+      'Up to 5 custom-designed pages (Home, Services, About, etc.)',
+      'Automated calendar & appointment booking (Calendly/Google)',
+      'Instant email & lead notifications for your team',
+      'Content management setup for simple text updates',
+      'On-page SEO optimization & custom domain setup',
+      '30 days dedicated support & revisions'
+    ]
+  },
+  {
+    id: 'operations',
+    tier: 'High Tier',
+    badge: 'Advanced Suite',
+    name: 'Digital Operations Suite',
+    tag: 'WEB PLATFORM + AUTOMATION',
+    desc: 'High-performance web platform featuring interactive customer qualification and smart workflow automations.',
+    priceOneOff: '£2,450',
+    pricePlan: '£850',
+    planPeriod: '/mo for 3 months',
+    oneOffPeriod: 'one-time investment',
+    popular: false,
+    packageName: 'Digital Operations Suite (£2,450 / £850 mo)',
+    features: [
+      'Dynamic multi-page web platform & intake flows',
+      'Interactive customer qualification demo or quiz',
+      'Automated email follow-up & lead triage workflows',
+      'WhatsApp / CRM / database integration',
+      'Custom branding assets & animation effects',
+      '60 days priority optimization & support'
+    ]
+  }
+]
+
+function EnquiryForm({ demo = false, selectedPackage = 'Starter Web Presence (£495 / £175 mo)', onSelectPackage }) {
  const [status, setStatus] = useState(''); const [busy, setBusy] = useState(false)
  async function submit(e) {
   e.preventDefault()
@@ -35,32 +104,177 @@ function EnquiryForm({ demo = false }) {
   const endpoint = import.meta.env.VITE_ENQUIRY_ENDPOINT || 'https://formsubmit.co/ajax/okubep@gmail.com'
   setBusy(true)
   try {
-   const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ ...data, _subject: `Lumen ${demo ? 'demo request' : 'enquiry'} from ${data.name || 'website visitor'}`, _template: 'table' }) })
+   const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ ...data, _subject: `Lumen ${demo ? 'demo request' : 'enquiry'} from ${data.name || 'website visitor'} [${data.package || 'General'}]`, _template: 'table' }) })
    if (!res.ok) throw new Error()
    setStatus('Thank you. Your request has been sent to the Lumen team. We’ll get back to you shortly.')
    form.reset()
   } catch { setStatus('We couldn’t send your request right now. Please email okubep@gmail.com directly or try again.') }
   finally { setBusy(false) }
  }
- return <form onSubmit={submit} className="enquiry-form"><div className="form-grid"><label>Name<input name="name" autoComplete="name" required placeholder="Your name" /></label><label>Business name<input name="business" autoComplete="organization" required placeholder="Your business" /></label><label>Email<input type="email" name="email" autoComplete="email" required placeholder="you@business.com" /></label>{!demo && <label>Website <span>(optional)</span><input type="url" name="website" placeholder="https://" /></label>}</div>{!demo && <><div className="form-grid"><label>Industry<select name="industry" required><option value="">Select your industry</option>{industries.map(i => <option key={i}>{i}</option>)}</select></label><label>People in your business<select name="size"><option>Just me</option><option>2–10</option><option>11–50</option><option>51–200</option><option>201+</option></select></label></div><label>What’s taking up too much of your team’s time?<textarea name="requirements" required placeholder="Tell us what’s slowing your business down…" rows={4} /></label><fieldset><legend>What would you like to improve?</legend><div className="checkboxes">{['Customer enquiries', 'Phone calls', 'Bookings', 'Emails', 'Admin', 'Follow-ups', 'Social media', 'Other'].map(s => <label key={s}><input type="checkbox" name="improvements" value={s} />{s}</label>)}</div></fieldset><label>Anything else we should know? <span>(optional)</span><textarea name="notes" rows={2} /></label></>}<button className="button primary" disabled={busy}>{busy ? 'Sending…' : demo ? 'Request a Demo' : 'Send enquiry'}<ArrowUpRight size={18}/></button><p className="small muted">Your enquiry goes to okubep@gmail.com. We’ll review it and get back to you.</p>{status && <p className="form-status" role="status">{status}</p>}</form>
+ return <form onSubmit={submit} className="enquiry-form">
+  <div className="form-grid">
+   <label>Name<input name="name" autoComplete="name" required placeholder="Your name" /></label>
+   <label>Business name<input name="business" autoComplete="organization" required placeholder="Your business" /></label>
+   <label>Email<input type="email" name="email" autoComplete="email" required placeholder="you@business.com" /></label>
+   {!demo && <label>Website <span>(optional)</span><input type="url" name="website" placeholder="https://" /></label>}
+  </div>
+  {!demo && <>
+   <div className="form-grid">
+    <label>Package or Service
+     <select name="package" value={selectedPackage} onChange={e => onSelectPackage && onSelectPackage(e.target.value)}>
+      <option value="Starter Web Presence (£495 / £175 mo)">Starter Web Presence — £495 (or £175/mo)</option>
+      <option value="Growth Business Hub (£1,250 / £440 mo)">Growth Business Hub — £1,250 (or £440/mo)</option>
+      <option value="Digital Operations Suite (£2,450 / £850 mo)">Digital Operations Suite — £2,450 (or £850/mo)</option>
+      <option value="Bespoke AI Architecture">Bespoke AI & Systems Architecture (Custom Scope)</option>
+      <option value="Other / General Consultation">Other / General Consultation</option>
+     </select>
+    </label>
+    <label>Payment Preference
+     <select name="payment_plan">
+      <option value="Pay in Full">Pay in Full (One-time investment)</option>
+      <option value="3-Month Flexible Plan">3-Month Flexible Plan (0% Interest)</option>
+      <option value="Custom Enterprise Invoice">Custom Enterprise Scope</option>
+     </select>
+    </label>
+   </div>
+   <div className="form-grid">
+    <label>Industry<select name="industry" required><option value="">Select your industry</option>{industries.map(i => <option key={i}>{i}</option>)}</select></label>
+    <label>People in your business<select name="size"><option>Just me</option><option>2–10</option><option>11–50</option><option>51–200</option><option>201+</option></select></label>
+   </div>
+   <label>What’s taking up too much of your team’s time?<textarea name="requirements" required placeholder="Tell us what’s slowing your business down…" rows={4} /></label>
+   <fieldset><legend>What would you like to improve?</legend><div className="checkboxes">{['Customer enquiries', 'Phone calls', 'Bookings', 'Emails', 'Admin', 'Follow-ups', 'Social media', 'Other'].map(s => <label key={s}><input type="checkbox" name="improvements" value={s} />{s}</label>)}</div></fieldset>
+   <label>Anything else we should know? <span>(optional)</span><textarea name="notes" rows={2} /></label>
+  </>}
+  <button className="button primary" disabled={busy}>{busy ? 'Sending…' : demo ? 'Request a Demo' : 'Send enquiry'}<ArrowUpRight size={18}/></button>
+  <p className="small muted">Your enquiry goes to okubep@gmail.com. We’ll review it and get back to you.</p>
+  {status && <p className="form-status" role="status">{status}</p>}
+ </form>
 }
 function Website() {
  const { theme, toggleTheme } = useTheme(); const [menu, setMenu] = useState(false); const [selected, setSelected] = useState(null); const [industry, setIndustry] = useState(0); const [demoOpen, setDemoOpen] = useState(false)
- return <><PointerEffects/><ScrollEffects/><a className="skip-link" href="#main">Skip to content</a><header><a href="#" aria-label="Lumen home"><Logo /></a><nav className={menu ? 'open' : ''}>{[['Solutions','solutions'],['Our work','work'],['Industries','industries'],['About','about']].map(([label,id]) => <a key={id} href={`#${id}`} onClick={() => setMenu(false)}>{label}</a>)}</nav><div className="nav-actions"><button className="icon-button" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}</button><a href="#contact" className="button nav-cta">Get started <ArrowUpRight size={16}/></a><button className="icon-button menu-button" aria-label="Toggle menu" aria-expanded={menu} onClick={() => setMenu(!menu)}>{menu ? <X/> : <Menu/>}</button></div></header>
+ const [selectedPackage, setSelectedPackage] = useState('Starter Web Presence (£495 / £175 mo)')
+ const [isPaymentPlan, setIsPaymentPlan] = useState(false)
+
+ function handleSelectPackage(pkgName) {
+  setSelectedPackage(pkgName)
+  const contactEl = document.getElementById('contact')
+  if (contactEl) {
+   contactEl.scrollIntoView({ behavior: 'smooth' })
+  }
+ }
+
+ return <><PointerEffects/><ScrollEffects/><a className="skip-link" href="#main">Skip to content</a><header><a href="#" aria-label="Lumen home"><Logo /></a><nav className={menu ? 'open' : ''}>{[['Solutions','solutions'],['Pricing','pricing'],['Our work','work'],['Industries','industries'],['About','about']].map(([label,id]) => <a key={id} href={`#${id}`} onClick={() => setMenu(false)}>{label}</a>)}</nav><div className="nav-actions"><button className="icon-button" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>{theme === 'dark' ? <Sun size={18}/> : <Moon size={18}/>}</button><a href="#contact" className="button nav-cta">Get started <ArrowUpRight size={16}/></a><button className="icon-button menu-button" aria-label="Toggle menu" aria-expanded={menu} onClick={() => setMenu(!menu)}>{menu ? <X/> : <Menu/>}</button></div></header>
  <main id="main"><section className="hero"><div className="hero-grid"/><div className="hero-inner"><div className="eyebrow"><i/> INTELLIGENT SYSTEMS. REAL-WORLD IMPACT.</div><div className="hero-layout"><div><h1>The future<br/><span className="outline">runs on</span> <em>Lumen.</em></h1><p className="hero-lead">AI systems that handle the work<br className="desktop-break"/> behind your business.</p><p className="hero-copy">From customer enquiries and appointments to follow-ups, administration and content — built around the way you work.</p><div className="hero-buttons"><a className="button primary" href="#contact">Build My AI System <ArrowUpRight size={19}/></a><a className="button secondary" href="#solutions">See What Lumen Can Do <ArrowRight size={18}/></a></div></div><div className="hero-art"><div className="orbit-label">BUILT AROUND YOU <span>✦</span> POWERED BY POSSIBILITY</div><Logo large/><div className="art-caption"><span className="status-dot"/> LESS REPETITION. MORE POSSIBILITY.</div></div></div><div className="hero-bottom"><span>Built for businesses. Designed around you.</span><a href="#solutions">SCROLL TO EXPLORE ↓</a><span>01 / A BRIGHTER WAY TO WORK</span></div></div></section>
  <div className="ticker"><span>YOUR BUSINESS, AMPLIFIED</span><b>✳</b><span>LESS BUSYWORK</span><b>✳</b><span>MORE POSSIBILITY</span><b>✳</b><span>BUILT AROUND YOU</span><b>✳</b></div>
  <section id="solutions" className="section"><div className="section-heading"><div><p className="eyebrow">01 / THE POSSIBILITIES</p><h2>What could you<br/><span className="muted">automate?</span></h2></div><p>You know your business.<br/>We know what technology can take off your plate.</p></div><div className="solutions-grid">{solutions.map(([title,tag,desc,Icon],i) => <button key={title} className={`solution-card card-${i}`} onClick={() => setSelected(selected === i ? null : i)} aria-expanded={selected === i}><div className="card-top"><span>0{i+1}</span>{createElement(Icon, { size: 25, strokeWidth: 1.4 })}</div><h3>{title}</h3><p>{desc}</p><div className="card-bottom"><span>{tag}</span>{selected === i ? <Minus size={18}/> : <ArrowUpRight size={18}/>}</div>{selected === i && <div className="solution-detail">{solutions[i][4]}</div>}</button>)}<a className="solution-card custom-card" href="#contact"><Sparkles size={28}/><h3>A different<br/>kind of challenge?</h3><p>Tell us what you’re trying to achieve.</p><div className="card-bottom">Let’s figure it out <ArrowUpRight size={23}/></div></a></div></section>
  <section className="problem section" id="about"><p className="eyebrow">02 / NO AI EXPERTISE REQUIRED</p><h2>You bring the problem.<br/><span className="muted">We build the solution.</span></h2><div className="problem-bottom"><figure><img className="brand-story-image" src="/images/connected-intelligence.png" alt="Blue glass connections join around a warm amber centre, an illustration of connected business workflows" loading="lazy" width="1536" height="1024"/><figcaption className="brand-image-caption">Connected workflows. One shared purpose.</figcaption></figure><div><p>You don’t need to know which AI tools to use, what automation to build or how to connect your systems.</p><p className="muted">Simply tell us what’s taking too much time, costing you money or creating unnecessary work. We’ll work out what can be automated.</p><a className="text-link" href="#contact">Tell Lumen Your Problem <ArrowUpRight size={20}/></a></div></div></section>
  <section className="section" id="process"><p className="eyebrow">03 / FROM PROBLEM TO POSSIBILITY</p><h2>Simple for you.<br/><span className="muted">Powerful for your business.</span></h2><div className="process-grid">{[['Tell us','Tell us what your business does and what’s slowing you down.'],['We design','We identify opportunities for automation and design a system around your workflow.'],['You move forward','We build, integrate and deploy your AI system. Your business keeps moving. Lumen handles the repetitive work.']].map(([t,d],i)=><article key={t}><span className="step-number">0{i+1}</span><h3>{t}</h3><p>{d}</p></article>)}</div></section>
  <section className="section ecosystem-section" id="technology"><div className="section-heading"><div><p className="eyebrow">04 / OUR ECOSYSTEM</p><h2>Connected to the<br/><span className="muted">tools that move work.</span></h2></div><p>We bring together the AI, automation and business platforms that make useful systems possible.</p></div><div className="ecosystem-group"><p className="ecosystem-label">PLATFORMS WE WORK WITH</p><div className="ecosystem-logos">{[['Google Gemini','gemini'],['OpenAI','openai'],['Anthropic','anthropic'],['Zapier','zapier'],['Make','make'],['n8n','n8n'],['HubSpot','hubspot'],['Slack','slack'],['Notion','notion'],['Airtable','airtable']].map(([name,logo])=><div className="ecosystem-logo" key={name}><img src={`/images/brands/${logo}.png`} alt={`${name} logo`} loading="lazy"/><span>{name}</span></div>)}</div></div><div className="ecosystem-group news-group"><p className="ecosystem-label">NEWS &amp; INSIGHT WE FOLLOW</p><div className="ecosystem-logos news-logos">{[['TechCrunch','techcrunch'],['WIRED','wired'],['The Verge','theverge'],['BBC News','bbc'],['Reuters','reuters']].map(([name,logo])=><div className="ecosystem-logo" key={name}><img src={`/images/brands/${logo}.png`} alt={`${name} logo`} loading="lazy"/><span>{name}</span></div>)}</div></div><p className="small muted ecosystem-note">We work with these platforms where they suit a project. Names and logos are used for identification only and do not imply formal partnership, sponsorship or endorsement.</p></section>
- <section id="industries" className="section industry-section"><div className="section-heading"><div><p className="eyebrow">04 / YOUR WORLD. YOUR WORKFLOW.</p><h2>Built for the way<br/>your industry works.</h2></div><p>No one-size-fits-all systems.<br/>Just the right solution for your business.</p></div><div className="industry-buttons">{industries.map((v,i)=><button key={v} className={industry === i ? 'active' : ''} onClick={()=>setIndustry(i)} aria-pressed={industry === i}>{v}<ArrowUpRight size={16}/></button>)}</div><div className="industry-example" aria-live="polite"><span>{industries[industry]} / THE POSSIBILITIES</span><p>{examples[industry]}</p></div><p className="muted small">Don’t see your industry? If your business has repetitive work, there’s a good chance Lumen can help.</p></section>
- <section className="section"><p className="eyebrow">05 / A BETTER WAY TO WORK</p><h2>Less busywork.<br/><span className="muted">More business.</span></h2><div className="comparison"><article><div className="comparison-title">Without Lumen <span>THE MANUAL WAY</span></div>{['Customer enquiry arrives','An employee notices it','Someone finds time to reply','The customer waits','The follow-up gets forgotten','A potential customer disappears'].map((s,i)=><div className="flow-row" key={s}><span>{i===5?'×':'↓'}</span>{s}</div>)}</article><article className="with-lumen"><div className="comparison-title">With Lumen <span>THE CONNECTED WAY</span></div>{['Customer enquiry arrives','Lumen responds instantly','Qualifies the customer','Books an appointment','Updates your systems','Automatically follows up'].map(s=><div className="flow-row" key={s}><Check size={17}/>{s}</div>)}</article></div><p className="small muted">Illustrative workflow. Your system’s capabilities depend on the agreed scope and integrations.</p></section>
- <section id="demo" className="section demo-section"><div><p className="eyebrow">06 / SEE THE POSSIBILITIES</p><h2>Don’t just<br/>imagine it.<br/><span className="muted">Try it.</span></h2><p className="demo-copy">An enquiry comes in. Lumen helps move it forward. Explore a simple example of an assistant qualifying a renovation enquiry.</p><button className="text-link" onClick={()=>setDemoOpen(true)}>Request a personalised demo <ArrowUpRight size={19}/></button></div><Demo/></section>
+ <section id="industries" className="section industry-section"><div className="section-heading"><div><p className="eyebrow">05 / YOUR WORLD. YOUR WORKFLOW.</p><h2>Built for the way<br/>your industry works.</h2></div><p>No one-size-fits-all systems.<br/>Just the right solution for your business.</p></div><div className="industry-buttons">{industries.map((v,i)=><button key={v} className={industry === i ? 'active' : ''} onClick={()=>setIndustry(i)} aria-pressed={industry === i}>{v}<ArrowUpRight size={16}/></button>)}</div><div className="industry-example" aria-live="polite"><span>{industries[industry]} / THE POSSIBILITIES</span><p>{examples[industry]}</p></div><p className="muted small">Don’t see your industry? If your business has repetitive work, there’s a good chance Lumen can help.</p></section>
+ <section className="section"><p className="eyebrow">06 / A BETTER WAY TO WORK</p><h2>Less busywork.<br/><span className="muted">More business.</span></h2><div className="comparison"><article><div className="comparison-title">Without Lumen <span>THE MANUAL WAY</span></div>{['Customer enquiry arrives','An employee notices it','Someone finds time to reply','The customer waits','The follow-up gets forgotten','A potential customer disappears'].map((s,i)=><div className="flow-row" key={s}><span>{i===5?'×':'↓'}</span>{s}</div>)}</article><article className="with-lumen"><div className="comparison-title">With Lumen <span>THE CONNECTED WAY</span></div>{['Customer enquiry arrives','Lumen responds instantly','Qualifies the customer','Books an appointment','Updates your systems','Automatically follows up'].map(s=><div className="flow-row" key={s}><Check size={17}/>{s}</div>)}</article></div><p className="small muted">Illustrative workflow. Your system’s capabilities depend on the agreed scope and integrations.</p></section>
+ <section id="demo" className="section demo-section"><div><p className="eyebrow">07 / SEE THE POSSIBILITIES</p><h2>Don’t just<br/>imagine it.<br/><span className="muted">Try it.</span></h2><p className="demo-copy">An enquiry comes in. Lumen helps move it forward. Explore a simple example of an assistant qualifying a renovation enquiry.</p><button className="text-link" onClick={()=>setDemoOpen(true)}>Request a personalised demo <ArrowUpRight size={19}/></button></div><Demo/></section>
  <Portfolio/><section className="belief section"><p className="eyebrow">THE LUMEN APPROACH</p><h2>Technology should work<br/>for people.</h2><p>We combine software engineering, automation and artificial intelligence to create systems designed around real-world workflows. We build AI when it solves a problem.</p><span>Practical systems. Human possibilities.</span></section>
- <section className="section faq-section"><div><p className="eyebrow">07 / A LITTLE MORE CLARITY</p><h2>Good questions.<br/><span className="muted">Clear answers.</span></h2></div><div>{faqs.map(([q,a])=><details key={q}><summary>{q}<Plus size={18}/></summary><p>{a}</p></details>)}</div></section>
- <section className="section contact-section" id="contact"><div><p className="eyebrow">08 / YOUR NEXT CHAPTER</p><h2>Let’s find out<br/>what Lumen<br/>can automate<span className="accent">.</span></h2><p>You don’t need a technical brief.<br/>Just a problem worth solving.</p><div className="contact-note"><Zap size={22}/><span>Built for businesses.<br/>Designed around you.</span></div><a className="booking-card" href="https://calendly.com/lumen_ai/lumen-project-booking" target="_blank" rel="noopener noreferrer"><span><strong>Prefer to talk it through?</strong><small>Book a project conversation on Calendly.</small></span><ArrowUpRight size={20}/></a></div><EnquiryForm/></section>
- </main><footer><div className="footer-top"><div><Logo/><p>The Future Runs on Lumen.</p></div><div className="footer-links"><a href="#solutions">Solutions</a><a href="#industries">Industries</a><a href="#about">About</a><a href="#contact">Contact</a><button onClick={()=>setDemoOpen(true)}>Request a Demo ↗</button></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Lumen</span><span>AI systems built around the way your business works.</span><a href="#">BACK TO TOP ↑</a></div></footer>
+
+ <section className="section pricing-section" id="pricing">
+  <div className="section-heading">
+   <div>
+    <p className="eyebrow">08 / PACKAGES &amp; INVESTMENT</p>
+    <h2>Clear investments.<br/><span className="muted">Flexible payment plans.</span></h2>
+   </div>
+   <p>High-converting websites and foundational business automations with 0% interest monthly payment options. For bespoke AI and enterprise architecture, send an enquiry below.</p>
+  </div>
+
+  <div className="pricing-toggle-wrap">
+   <div className="pricing-toggle" role="tablist" aria-label="Payment plan options">
+    <button 
+     type="button" 
+     className={!isPaymentPlan ? 'active' : ''} 
+     onClick={() => setIsPaymentPlan(false)}
+    >
+     Pay in Full <span className="badge-save">Save 10%</span>
+    </button>
+    <button 
+     type="button" 
+     className={isPaymentPlan ? 'active' : ''} 
+     onClick={() => setIsPaymentPlan(true)}
+    >
+     3-Month Payment Plan (0% Interest)
+    </button>
+   </div>
+  </div>
+
+  <div className="pricing-grid">
+   {pricingTiers.map(tier => (
+    <article key={tier.id} className={`pricing-card ${tier.popular ? 'is-popular' : ''}`}>
+     {tier.badge && <span className="pricing-badge">{tier.badge}</span>}
+     <span className="pricing-tier-tag">{tier.tag}</span>
+     <h3>{tier.name}</h3>
+     <p className="pricing-desc">{tier.desc}</p>
+     <div className="pricing-amount-box">
+      <div className="pricing-amount">
+       <span className="price-val">{isPaymentPlan ? tier.pricePlan : tier.priceOneOff}</span>
+       <span className="price-period">{isPaymentPlan ? tier.planPeriod : tier.oneOffPeriod}</span>
+      </div>
+      <div className="pricing-turnaround">✦ {tier.tier} · Fast Delivery</div>
+     </div>
+     <ul className="pricing-features">
+      {tier.features.map(f => (
+       <li key={f}><Check size={16}/><span>{f}</span></li>
+      ))}
+     </ul>
+     <a 
+      href="#contact" 
+      className="pricing-btn" 
+      onClick={() => handleSelectPackage(tier.packageName)}
+     >
+      Choose {tier.name.split(' ')[0]} <ArrowUpRight size={16}/>
+     </a>
+    </article>
+   ))}
+  </div>
+
+  <div className="enterprise-card">
+   <div className="enterprise-info">
+    <p className="eyebrow"><i/> BIGGER SERVICES · BESPOKE ARCHITECTURE</p>
+    <h3>Bespoke AI &amp; Systems Architecture</h3>
+    <p>For organisations requiring autonomous AI voice assistants, fine-tuned private models, legacy ERP/database integrations, or full custom operational pipelines. Built strictly to your specifications.</p>
+    <ul className="enterprise-features">
+     <li><span>✦</span> Autonomous 24/7 AI voice &amp; phone call agents</li>
+     <li><span>✦</span> Custom fine-tuned LLM workflows &amp; private knowledge base</li>
+     <li><span>✦</span> Deep ERP, CRM &amp; internal tooling integration</li>
+     <li><span>✦</span> Dedicated solution architect &amp; SLA guarantee</li>
+    </ul>
+   </div>
+   <div className="enterprise-action">
+    <span className="enterprise-scope-tag">CUSTOM ENTERPRISE MANDATE</span>
+    <h4>Tailored Scope</h4>
+    <p>Every system is designed around the exact structure and scale of your business.</p>
+    <div className="enterprise-btns">
+     <a 
+      href="#contact" 
+      className="button primary" 
+      onClick={() => handleSelectPackage('Bespoke AI Architecture')}
+     >
+      Send an Enquiry <ArrowUpRight size={17}/>
+     </a>
+     <a 
+      href="https://calendly.com/lumen_ai/lumen-project-booking" 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      className="button secondary"
+     >
+      Book Project Call <ArrowRight size={16}/>
+     </a>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <section className="section faq-section"><div><p className="eyebrow">09 / A LITTLE MORE CLARITY</p><h2>Good questions.<br/><span className="muted">Clear answers.</span></h2></div><div>{faqs.map(([q,a])=><details key={q}><summary>{q}<Plus size={18}/></summary><p>{a}</p></details>)}</div></section>
+ <section className="section contact-section" id="contact"><div><p className="eyebrow">10 / YOUR NEXT CHAPTER</p><h2>Let’s find out<br/>what Lumen<br/>can automate<span className="accent">.</span></h2><p>You don’t need a technical brief.<br/>Just a problem worth solving.</p><div className="contact-note"><Zap size={22}/><span>Built for businesses.<br/>Designed around you.</span></div><a className="booking-card" href="https://calendly.com/lumen_ai/lumen-project-booking" target="_blank" rel="noopener noreferrer"><span><strong>Prefer to talk it through?</strong><small>Book a project conversation on Calendly.</small></span><ArrowUpRight size={20}/></a></div><EnquiryForm selectedPackage={selectedPackage} onSelectPackage={setSelectedPackage}/></section>
+ </main><footer><div className="footer-top"><div><Logo/><p>The Future Runs on Lumen.</p></div><div className="footer-links"><a href="#solutions">Solutions</a><a href="#pricing">Pricing</a><a href="#industries">Industries</a><a href="#about">About</a><a href="#contact">Contact</a><button onClick={()=>setDemoOpen(true)}>Request a Demo ↗</button></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Lumen</span><span>AI systems built around the way your business works.</span><a href="#">BACK TO TOP ↑</a></div></footer>
  {demoOpen && <div className="modal-backdrop" onClick={e=>{if(e.target===e.currentTarget)setDemoOpen(false)}}><dialog open aria-labelledby="demo-title" onKeyDown={e=>{if(e.key==='Escape')setDemoOpen(false)}}><button className="modal-close icon-button" autoFocus onClick={()=>setDemoOpen(false)} aria-label="Close demo request"><X/></button><p className="eyebrow">LET’S EXPLORE</p><h2 id="demo-title">See what’s possible.</h2><p>Tell us a little about your business to request a personalised demo.</p><EnquiryForm demo/></dialog></div>}
  </>
 }
 export default function App(){return <ThemeProvider><Website/></ThemeProvider>}
+
